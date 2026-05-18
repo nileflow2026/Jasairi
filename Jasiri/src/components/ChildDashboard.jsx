@@ -4,7 +4,7 @@
  * Features: Large cards, simple layouts, audio cues, minimal distractions
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -41,87 +41,92 @@ export function ChildDashboard({ onNavigate, childName = "Champion" }) {
     const fullGreeting = `${timeGreeting}, ${childName}!`;
     setGreeting(fullGreeting);
 
-    // Welcome audio on load
-    setTimeout(() => {
+    // Welcome audio on load — cleaned up if component unmounts before 1 s
+    const timer = setTimeout(() => {
+      Speech.stop();
       Speech.speak(`${fullGreeting} Welcome to your learning dashboard!`, {
         language: "en",
         pitch: 1.0,
         rate: 0.8,
       });
     }, 1000);
+    return () => {
+      clearTimeout(timer);
+      Speech.stop();
+    };
   }, [childName]);
 
-  const dashboardCards = [
+  const dashboardCards = useMemo(() => [
     {
       id: "games",
       title: "Play Games",
       emoji: "🎮",
       color: theme.colors.primary[400],
-      description: "Fun learning games",
+      description: "Memory game",
       audioText: "Play educational games and have fun learning",
-      route: "games",
+      route: { path: "games", game: "memory" },
     },
     {
       id: "stories",
       title: "Listen to Stories",
       emoji: "📚",
       color: theme.colors.success[400],
-      description: "Audio stories and books",
-      audioText: "Listen to exciting stories and adventures",
-      route: "stories",
+      description: "Listen to stories",
+      audioText: "Listen to a story made for you",
+      route: { path: "stories" },
     },
     {
       id: "music",
       title: "Music & Songs",
       emoji: "🎵",
       color: theme.colors.warning[400],
-      description: "Songs and music activities",
-      audioText: "Enjoy music and sing along to fun songs",
-      route: "music",
+      description: "Listen to songs",
+      audioText: "Listen to music and sing along",
+      route: { path: "music" },
     },
     {
       id: "art",
       title: "Create Art",
       emoji: "🎨",
       color: theme.colors.purple[400],
-      description: "Drawing and creative activities",
-      audioText: "Create beautiful art and express your creativity",
-      route: "art",
+      description: "Memory game",
+      audioText: "Play the memory game and find the pairs",
+      route: { path: "games", game: "memory" },
     },
     {
       id: "numbers",
       title: "Learn Numbers",
       emoji: "🔢",
       color: theme.colors.blue[400],
-      description: "Counting and numbers",
-      audioText: "Practice counting and learn about numbers",
-      route: "numbers",
+      description: "Matching game",
+      audioText: "Play the matching game and practice choosing the right answer",
+      route: { path: "games", game: "matching" },
     },
     {
       id: "letters",
       title: "Learn Letters",
       emoji: "🔤",
       color: theme.colors.green[400],
-      description: "Alphabet and reading",
-      audioText: "Learn letters and practice reading",
-      route: "letters",
+      description: "Sequencing game",
+      audioText: "Play the sequencing game and practice order and routine",
+      route: { path: "games", game: "sequencing" },
     },
-  ];
+  ], [theme.colors]);
 
-  const handleCardPress = (card) => {
+  const handleCardPress = useCallback((card) => {
     buttonFeedback(card.title);
+    // Stop any in-progress speech before starting a new one
+    Speech.stop();
     Speech.speak(card.audioText, {
       language: "en",
       pitch: 1.0,
       rate: 0.8,
     });
-
-    setTimeout(() => {
-      if (onNavigate) {
-        onNavigate(card.route);
-      }
-    }, 2000); // Give time for audio to finish
-  };
+    // Navigate immediately — TTS plays in the background
+    if (onNavigate) {
+      onNavigate(card.route);
+    }
+  }, [onNavigate, buttonFeedback]);
 
   const handleParentAccess = () => {
     Speech.speak("Switching to parent dashboard", {

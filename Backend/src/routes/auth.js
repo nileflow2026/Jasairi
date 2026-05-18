@@ -1,84 +1,97 @@
-const express = require('express');
-const { logger } = require('../utils/logger');
+const express = require("express");
+const { body } = require("express-validator");
+const {
+  register,
+  login,
+  refreshToken,
+  logout,
+  me,
+  sendVerification,
+  verifyEmail,
+} = require("../controllers/auth");
+const { authLimiter, refreshLimiter } = require("../middleware/rateLimiter");
+const { validate } = require("../middleware/validate");
+const { authenticate } = require("../middleware/authenticate");
 
 const router = express.Router();
 
-/**
- * @route   POST /api/v1/auth/login
- * @desc    Authenticate guardian
- * @access  Public
- */
-router.post('/login', async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
+// POST /register
+router.post(
+  "/register",
+  authLimiter,
+  validate([
+    body("email")
+      .isEmail()
+      .normalizeEmail()
+      .withMessage("Valid email required"),
+    body("password")
+      .isLength({ min: 8, max: 128 })
+      .withMessage("Password must be 8–128 characters")
+      .matches(/[A-Z]/)
+      .withMessage("Password must contain at least one uppercase letter")
+      .matches(/[0-9]/)
+      .withMessage("Password must contain at least one number"),
+    body("name")
+      .trim()
+      .notEmpty()
+      .isLength({ max: 100 })
+      .withMessage("Name is required and must be ≤100 characters"),
+    body("role")
+      .isIn(["parent", "teacher", "therapist", "caregiver"])
+      .withMessage("Role must be parent, teacher, therapist, or caregiver"),
+    body("phoneNumber")
+      .optional({ nullable: true, checkFalsy: true })
+      .trim()
+      .matches(/^[+\d][\d\s\-().]{6,18}$/)
+      .withMessage("Phone number format is invalid"),
+  ]),
+  register,
+);
 
-    // TODO: Implement authentication logic
-    logger.info('Login attempt', { email });
+// POST /login
+router.post(
+  "/login",
+  authLimiter,
+  validate([
+    body("email")
+      .isEmail()
+      .normalizeEmail()
+      .withMessage("Valid email required"),
+    body("password").notEmpty().withMessage("Password is required"),
+  ]),
+  login,
+);
 
-    res.json({
-      success: true,
-      message: 'Authentication endpoint - TODO: Implement',
-      data: {
-        token: 'placeholder-jwt-token',
-        user: {
-          id: '1',
-          email,
-          role: 'parent',
-        },
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// POST /refresh
+router.post(
+  "/refresh",
+  refreshLimiter,
+  validate([
+    body("refreshToken").notEmpty().withMessage("Refresh token required"),
+  ]),
+  refreshToken,
+);
 
-/**
- * @route   POST /api/v1/auth/register
- * @desc    Register new guardian
- * @access  Public
- */
-router.post('/register', async (req, res, next) => {
-  try {
-    const { email, password, name, role } = req.body;
+// POST /logout
+router.post("/logout", authenticate, logout);
 
-    // TODO: Implement registration logic
-    logger.info('Registration attempt', { email, role });
+// POST /send-verification  — resend OTP to the authenticated guardian's email
+router.post("/send-verification", authenticate, sendVerification);
 
-    res.status(201).json({
-      success: true,
-      message: 'Registration endpoint - TODO: Implement',
-      data: {
-        user: {
-          id: '1',
-          email,
-          name,
-          role,
-        },
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// POST /verify-email  — validate the OTP and mark the guardian as verified
+router.post(
+  "/verify-email",
+  authenticate,
+  validate([
+    body("otp")
+      .isLength({ min: 6, max: 6 })
+      .isNumeric()
+      .withMessage("OTP must be a 6-digit code"),
+  ]),
+  verifyEmail,
+);
 
-/**
- * @route   POST /api/v1/auth/refresh
- * @desc    Refresh JWT token
- * @access  Private
- */
-router.post('/refresh', async (req, res, next) => {
-  try {
-    // TODO: Implement token refresh logic
-    res.json({
-      success: true,
-      message: 'Token refresh endpoint - TODO: Implement',
-      data: {
-        token: 'new-jwt-token',
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// GET /me
+router.get("/me", authenticate, me);
 
 module.exports = { authRoutes: router };

@@ -1,15 +1,15 @@
 module.exports = {
-  testEnvironment: 'node',
-  roots: ['<rootDir>/src'],
-  testMatch: ['**/__tests__/**/*.js', '**/?(*.)+(spec|test).js'],
+  testEnvironment: "node",
+  roots: ["<rootDir>/src"],
+  testMatch: ["**/__tests__/**/*.test.js", "**/?(*.)+(spec|test).js"],
   collectCoverageFrom: [
-    'src/**/*.js',
-    '!src/**/*.test.js',
-    '!src/**/*.spec.js',
-    '!src/server.js',
+    "src/**/*.js",
+    "!src/**/*.test.js",
+    "!src/**/*.spec.js",
+    "!src/server.js",
   ],
-  coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+  coverageDirectory: "coverage",
+  coverageReporters: ["text", "lcov", "html"],
   coverageThreshold: {
     global: {
       branches: 80,
@@ -18,5 +18,5 @@ module.exports = {
       statements: 80,
     },
   },
-  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.js'],
+  setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.js"],
 };

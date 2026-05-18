@@ -1,10 +1,11 @@
+/* eslint-disable react/no-unescaped-entities */
 /**
  * Parent Dashboard Component
  * Administrative interface for parents and caregivers
  * Features: Progress tracking, settings, content management
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,7 +13,6 @@ import {
   Dimensions,
   Platform,
   StatusBar,
-  Modal,
 } from "react-native";
 import * as Speech from "expo-speech";
 import { AccessibleButton } from "./AccessibleButton";

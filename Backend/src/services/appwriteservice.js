@@ -8,11 +8,15 @@ const {
   Permission,
   ID,
   Role,
-} = require('node-appwrite');
+  Query,
+} = require("node-appwrite");
 
 const client = new Client()
+  // @ts-ignore
   .setEndpoint(process.env.APPWRITE_ENDPOINT)
+  // @ts-ignore
   .setProject(process.env.APPWRITE_PROJECT_ID)
+  // @ts-ignore
   .setKey(process.env.APPWRITE_API_KEY); // secret server key
 
 const databases = new Databases(client);
@@ -31,4 +35,5 @@ module.exports = {
   Permission,
   ID,
   Role,
+  Query,
 };

@@ -76,6 +76,20 @@ export const accessibilityTheme = {
       900: "#78350f",
     },
 
+    // Yellow palette (alias for warning for convenience)
+    yellow: {
+      50: "#fffbeb",
+      100: "#fef3c7",
+      200: "#fde68a",
+      300: "#fcd34d",
+      400: "#fbbf24",
+      500: "#f59e0b",
+      600: "#d97706",
+      700: "#b45309",
+      800: "#92400e",
+      900: "#78350f",
+    },
+
     // Grayscale with high contrast ratios
     gray: {
       50: "#fafafa",
@@ -113,6 +127,38 @@ export const accessibilityTheme = {
       800: "#6b21a8",
       900: "#581c87",
     },
+
+    // Blue palette (alias for primary for convenience)
+    blue: {
+      50: "#eff6ff",
+      100: "#dbeafe",
+      200: "#bfdbfe",
+      300: "#93c5fd",
+      400: "#60a5fa",
+      500: "#3b82f6",
+      600: "#2563eb",
+      700: "#1d4ed8",
+      800: "#1e40af",
+      900: "#1e3a8a",
+    },
+
+    // Green palette (alias for success for convenience)
+    green: {
+      50: "#f0fdf4",
+      100: "#dcfce7",
+      200: "#bbf7d0",
+      300: "#86efac",
+      400: "#4ade80",
+      500: "#22c55e",
+      600: "#16a34a",
+      700: "#15803d",
+      800: "#166534",
+      900: "#14532d",
+    },
+
+    // White and black
+    white: "#ffffff",
+    black: "#000000",
   },
 
   // Typography - Dyslexia-friendly fonts and sizes
@@ -158,6 +204,20 @@ export const accessibilityTheme = {
       extrabold: "800",
       black: "900",
     },
+  },
+
+  // Font sizes shorthand (alias for typography.sizes for component convenience)
+  fontSizes: {
+    xs: 14,
+    sm: 16,
+    base: 18,
+    lg: 20,
+    xl: 24,
+    "2xl": 28,
+    "3xl": 32,
+    "4xl": 36,
+    "5xl": 42,
+    "6xl": 48,
   },
 
   // Spacing - Touch-friendly dimensions

@@ -10,6 +10,7 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": true,
+    "ignoreDeprecations": "6.0",
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"],

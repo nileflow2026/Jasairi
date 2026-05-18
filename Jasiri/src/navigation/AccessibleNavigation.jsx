@@ -3,7 +3,7 @@
  * Large touch targets, clear hierarchy, audio feedback
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -12,10 +12,10 @@ import {
   Animated,
   Platform,
   StatusBar,
-  SafeAreaView,
-} from 'react-native';
-import { useTheme, useAccessibility } from '../theme/ThemeProvider';
-import { useFeedback } from '../hooks/useFeedback';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme, useAccessibility } from "../theme/ThemeProvider";
+import { useFeedback } from "../hooks/useFeedback";
 
 /**
  * Accessible Tab Navigation
@@ -24,7 +24,7 @@ export function AccessibleTabBar({
   tabs,
   activeTab,
   onTabChange,
-  position = 'bottom',
+  position = "bottom",
   style = {},
   tabStyle = {},
   labelStyle = {},
@@ -43,7 +43,7 @@ export function AccessibleTabBar({
       navigationFeedback(tab.label || tab.title);
       onTabChange && onTabChange(tab.id, index);
     },
-    [activeTab, navigationFeedback, onTabChange]
+    [activeTab, navigationFeedback, onTabChange],
   );
 
   const getTabStyle = (tab, index) => {
@@ -56,13 +56,13 @@ export function AccessibleTabBar({
       minHeight: theme.touchTargets.comfortable,
       paddingHorizontal: theme.spacing[4],
       paddingVertical: theme.spacing[3],
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       backgroundColor: isActive
         ? theme.colors.primary[50]
         : theme.colors.accessibility.surface,
-      borderTopWidth: position === 'bottom' && isActive ? 3 : 0,
-      borderBottomWidth: position === 'top' && isActive ? 3 : 0,
+      borderTopWidth: position === "bottom" && isActive ? 3 : 0,
+      borderBottomWidth: position === "top" && isActive ? 3 : 0,
       borderTopColor: theme.colors.primary[500],
       borderBottomColor: theme.colors.primary[500],
       borderLeftWidth: 1,
@@ -74,7 +74,7 @@ export function AccessibleTabBar({
     };
   };
 
-  const getLabelStyle = tab => {
+  const getLabelStyle = (tab) => {
     const isActive = activeTab === tab.id;
 
     return {
@@ -85,16 +85,16 @@ export function AccessibleTabBar({
         ? theme.typography.weights.semibold
         : theme.typography.weights.normal,
       color: isActive ? theme.colors.primary[700] : theme.colors.gray[600],
-      textAlign: 'center',
+      textAlign: "center",
       ...labelStyle,
     };
   };
 
   const containerStyles = {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: theme.colors.accessibility.surface,
-    borderTopWidth: position === 'bottom' ? 1 : 0,
-    borderBottomWidth: position === 'top' ? 1 : 0,
+    borderTopWidth: position === "bottom" ? 1 : 0,
+    borderBottomWidth: position === "top" ? 1 : 0,
     borderColor: theme.colors.gray[200],
     ...theme.shadows.sm,
     ...style,
@@ -138,15 +138,15 @@ export function AccessibleTabBar({
             {tab.badge && (
               <View
                 style={{
-                  position: 'absolute',
+                  position: "absolute",
                   top: theme.spacing[1],
                   right: theme.spacing[1],
                   backgroundColor: theme.colors.error[500],
                   borderRadius: theme.borderRadius.full,
                   minWidth: theme.spacing[5],
                   height: theme.spacing[5],
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 <Text
@@ -189,7 +189,7 @@ export function AccessibleHeader({
   const { navigationFeedback } = useFeedback();
 
   const handleBackPress = useCallback(() => {
-    navigationFeedback('Going back');
+    navigationFeedback("Going back");
     onBackPress && onBackPress();
   }, [navigationFeedback, onBackPress]);
 
@@ -198,24 +198,24 @@ export function AccessibleHeader({
   const containerStyles = {
     height: headerHeight,
     backgroundColor: backgroundColor || theme.colors.primary[500],
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: theme.spacing[4],
-    paddingTop: Platform.OS === 'ios' ? 0 : StatusBar.currentHeight || 0,
+    paddingTop: Platform.OS === "ios" ? 0 : StatusBar.currentHeight || 0,
     ...theme.shadows.sm,
     ...style,
   };
 
   const titleContainerStyles = {
     flex: 1,
-    alignItems: centerContent ? 'center' : 'flex-start',
-    justifyContent: 'center',
+    alignItems: centerContent ? "center" : "flex-start",
+    justifyContent: "center",
     marginHorizontal: theme.spacing[4],
   };
 
   const titleTextStyles = {
     fontSize: isLargeText
-      ? theme.typography.sizes['2xl']
+      ? theme.typography.sizes["2xl"]
       : theme.typography.sizes.xl,
     fontWeight: theme.typography.weights.semibold,
     color: textColor || theme.colors.accessibility.background,
@@ -234,8 +234,8 @@ export function AccessibleHeader({
   const actionButtonStyles = {
     minWidth: theme.touchTargets.recommended,
     minHeight: theme.touchTargets.recommended,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginHorizontal: theme.spacing[1],
   };
 
@@ -245,7 +245,7 @@ export function AccessibleHeader({
     >
       <View style={containerStyles}>
         {/* Left Side */}
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
           {showBackButton && (
             <Pressable
               style={actionButtonStyles}
@@ -291,7 +291,7 @@ export function AccessibleHeader({
         </View>
 
         {/* Right Actions */}
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
           {rightActions.map((action, index) => (
             <View key={index} style={actionButtonStyles}>
               {action}
@@ -331,12 +331,12 @@ export function AccessibleDrawerItem({
   }, [disabled, buttonFeedback, accessibilityLabel, label, onPress]);
 
   const containerStyles = {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     minHeight: theme.touchTargets.comfortable,
     paddingHorizontal: theme.spacing[6],
     paddingVertical: theme.spacing[3],
-    backgroundColor: active ? theme.colors.primary[50] : 'transparent',
+    backgroundColor: active ? theme.colors.primary[50] : "transparent",
     borderLeftWidth: active ? 4 : 0,
     borderLeftColor: theme.colors.primary[500],
     opacity: disabled ? 0.5 : 1,
@@ -345,7 +345,7 @@ export function AccessibleDrawerItem({
 
   const iconContainerStyles = {
     width: theme.spacing[8],
-    alignItems: 'center',
+    alignItems: "center",
     marginRight: theme.spacing[4],
     ...iconStyle,
   };
@@ -389,8 +389,8 @@ export function AccessibleDrawerItem({
             borderRadius: theme.borderRadius.full,
             minWidth: theme.spacing[5],
             height: theme.spacing[5],
-            alignItems: 'center',
-            justifyContent: 'center',
+            alignItems: "center",
+            justifyContent: "center",
             marginLeft: theme.spacing[2],
           }}
         >
@@ -415,7 +415,7 @@ export function AccessibleDrawerItem({
 export function AccessibleBreadcrumb({
   items,
   onItemPress,
-  separator = '>',
+  separator = ">",
   maxItems = 4,
   style = {},
   itemStyle = {},
@@ -433,7 +433,7 @@ export function AccessibleBreadcrumb({
       navigationFeedback(`Navigate to ${item.label}`);
       onItemPress && onItemPress(item, index);
     },
-    [navigationFeedback, onItemPress]
+    [navigationFeedback, onItemPress],
   );
 
   // Truncate items if there are too many
@@ -441,17 +441,17 @@ export function AccessibleBreadcrumb({
     items.length > maxItems
       ? [
           items[0],
-          { id: 'ellipsis', label: '...', disabled: true },
+          { id: "ellipsis", label: "...", disabled: true },
           ...items.slice(-maxItems + 2),
         ]
       : items;
 
   const containerStyles = {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: theme.spacing[4],
     paddingVertical: theme.spacing[2],
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
     ...style,
   };
 
@@ -459,8 +459,8 @@ export function AccessibleBreadcrumb({
     minHeight: theme.touchTargets.minimum,
     paddingHorizontal: theme.spacing[2],
     paddingVertical: theme.spacing[1],
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     ...(isLast ? activeStyle : itemStyle),
   });
 
@@ -500,7 +500,7 @@ export function AccessibleBreadcrumb({
         return (
           <View
             key={item.id || index}
-            style={{ flexDirection: 'row', alignItems: 'center' }}
+            style={{ flexDirection: "row", alignItems: "center" }}
           >
             <Pressable
               style={getItemStyle(item, index, isLast)}
@@ -510,7 +510,7 @@ export function AccessibleBreadcrumb({
               accessibilityRole="button"
               accessibilityLabel={item.accessibilityLabel || item.label}
               accessibilityHint={
-                isLast ? 'Current page' : `Navigate to ${item.label}`
+                isLast ? "Current page" : `Navigate to ${item.label}`
               }
               accessibilityState={{
                 disabled: item.disabled || isLast,
@@ -541,7 +541,7 @@ export function AccessibleBottomSheet({
   onClose,
   children,
   title,
-  snapPoints = ['50%', '90%'],
+  snapPoints = ["50%", "90%"],
   initialSnapPoint = 0,
   style = {},
   handleStyle = {},
@@ -568,18 +568,18 @@ export function AccessibleBottomSheet({
 
   const overlayStyles = {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     opacity: animatedValue,
   };
 
   const sheetStyles = {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: theme.colors.accessibility.background,
-    borderTopLeftRadius: theme.borderRadius['3xl'],
-    borderTopRightRadius: theme.borderRadius['3xl'],
+    borderTopLeftRadius: theme.borderRadius["3xl"],
+    borderTopRightRadius: theme.borderRadius["3xl"],
     ...theme.shadows.lg,
     transform: [
       {
@@ -597,7 +597,7 @@ export function AccessibleBottomSheet({
     height: theme.spacing[1],
     backgroundColor: theme.colors.gray[300],
     borderRadius: theme.borderRadius.full,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginTop: theme.spacing[3],
     marginBottom: theme.spacing[4],
     ...handleStyle,
@@ -607,7 +607,7 @@ export function AccessibleBottomSheet({
     fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.semibold,
     color: theme.colors.gray[900],
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: theme.spacing[4],
   };
 

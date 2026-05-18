@@ -31,7 +31,12 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env.*
 .env*.local
+
+# Google Play Store service account key — NEVER commit
+google-play-key.json
 
 # typescript
 *.tsbuildinfo

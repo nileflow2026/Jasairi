@@ -47,6 +47,15 @@ export {
   AccessibleBottomSheet,
 } from "./navigation/AccessibleNavigation.jsx";
 
+// Games Components
+export { SeriousGamesHub } from './components/SeriousGamesHub.jsx';
+
+// Story Components
+export { StoryHub } from './components/StoryHub.jsx';
+
+// Music Components
+export { MusicHub } from './components/MusicHub.jsx';
+
 // Dashboard Components
 export { ChildDashboard } from "./components/ChildDashboard.jsx";
 export { ParentDashboard } from "./components/ParentDashboard.jsx";

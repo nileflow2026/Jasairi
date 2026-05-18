@@ -3,26 +3,28 @@
  * Provides audio cues and voice feedback for accessibility
  */
 
-import { useCallback, useRef, useEffect } from 'react';
-import { Audio } from 'expo-av';
-import * as Speech from 'expo-speech';
-import * as Haptics from 'expo-haptics';
-import { Platform } from 'react-native';
-import { useAccessibility } from '../theme/ThemeProvider';
+import { useCallback, useRef, useEffect } from "react";
+import {
+  createAudioPlayer,
+} from "expo-audio";
+import * as Speech from "expo-speech";
+import * as Haptics from "expo-haptics";
+import { Platform } from "react-native";
+import { useAccessibility } from "../theme/ThemeProvider";
 
 // Audio feedback types
 export const AUDIO_TYPES = {
-  SUCCESS: 'success',
-  ERROR: 'error',
-  WARNING: 'warning',
-  BUTTON_PRESS: 'button_press',
-  NAVIGATION: 'navigation',
-  FOCUS: 'focus',
-  ACHIEVEMENT: 'achievement',
-  GENTLE_CHIME: 'gentle_chime',
-  SOFT_CLICK: 'soft_click',
-  SWOOSH: 'swoosh',
-  POP: 'pop',
+  SUCCESS: "success",
+  ERROR: "error",
+  WARNING: "warning",
+  BUTTON_PRESS: "button_press",
+  NAVIGATION: "navigation",
+  FOCUS: "focus",
+  ACHIEVEMENT: "achievement",
+  GENTLE_CHIME: "gentle_chime",
+  SOFT_CLICK: "soft_click",
+  SWOOSH: "swoosh",
+  POP: "pop",
 };
 
 // Haptic feedback types
@@ -59,33 +61,17 @@ export function useAudioFeedback() {
   const { hasAudioFeedback } = useAccessibility();
   const soundsRef = useRef(new Map());
 
-  // Initialize audio system
+  // NOTE: Audio system (setAudioModeAsync) is initialized once in app/_layout.jsx.
+  // This hook only manages per-component sound players.
+
   useEffect(() => {
-    const initAudio = async () => {
-      try {
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          staysActiveInBackground: false,
-          interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
-          playsInSilentModeIOS: true,
-          shouldDuckAndroid: true,
-          interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
-          playThroughEarpieceAndroid: false,
-        });
-      } catch (error) {
-        console.warn('Failed to initialize audio:', error);
-      }
-    };
-
-    initAudio();
-
-    // Cleanup sounds on unmount
+    // Cleanup players on unmount
     return () => {
-      soundsRef.current.forEach(async (sound) => {
+      soundsRef.current.forEach((player) => {
         try {
-          await sound.unloadAsync();
+          player.remove();
         } catch (error) {
-          console.warn('Failed to unload sound:', error);
+          console.warn("Failed to remove audio player:", error);
         }
       });
       soundsRef.current.clear();
@@ -102,19 +88,17 @@ export function useAudioFeedback() {
       const audioFile = AUDIO_FILES[audioType];
       if (!audioFile) {
         // Gracefully handle missing audio files during development
-        console.log(`Audio file placeholder for type: ${audioType} - add actual audio file for production`);
+        console.log(
+          `Audio file placeholder for type: ${audioType} - add actual audio file for production`,
+        );
         return null;
       }
 
-      const { sound } = await Audio.Sound.createAsync(audioFile, {
-        shouldPlay: false,
-        volume: 0.8,
-        rate: 1.0,
-        positionMillis: 0,
-      });
+      const player = createAudioPlayer(audioFile);
+      player.volume = 0.8;
 
-      soundsRef.current.set(audioType, sound);
-      return sound;
+      soundsRef.current.set(audioType, player);
+      return player;
     } catch (error) {
       console.warn(`Failed to load sound ${audioType}:`, error);
       return null;
@@ -122,38 +106,63 @@ export function useAudioFeedback() {
   }, []);
 
   // Play audio feedback
-  const playAudio = useCallback(async (audioType, options = {}) => {
-    if (!hasAudioFeedback) return;
+  const playAudio = useCallback(
+    async (audioType, options = {}) => {
+      if (!hasAudioFeedback) return;
 
-    try {
-      const sound = await loadSound(audioType);
-      if (!sound) return;
+      try {
+        const sound = await loadSound(audioType);
+        if (!sound) return;
 
-      // Set volume if specified
-      if (options.volume !== undefined) {
-        await sound.setVolumeAsync(options.volume);
+        // Set volume if specified
+        if (options.volume !== undefined) {
+          sound.volume = options.volume;
+        }
+
+        // Set playback rate if specified
+        if (options.rate !== undefined) {
+          sound.playbackRate = options.rate;
+        }
+
+        // Play from beginning
+        sound.seekTo(0);
+        sound.play();
+      } catch (error) {
+        console.warn(`Failed to play audio ${audioType}:`, error);
       }
-
-      // Set playback rate if specified
-      if (options.rate !== undefined) {
-        await sound.setRateAsync(options.rate, true);
-      }
-
-      // Play from beginning
-      await sound.replayAsync();
-    } catch (error) {
-      console.warn(`Failed to play audio ${audioType}:`, error);
-    }
-  }, [hasAudioFeedback, loadSound]);
+    },
+    [hasAudioFeedback, loadSound],
+  );
 
   // Quick play functions for common scenarios
-  const playSuccess = useCallback((options) => playAudio(AUDIO_TYPES.SUCCESS, options), [playAudio]);
-  const playError = useCallback((options) => playAudio(AUDIO_TYPES.ERROR, options), [playAudio]);
-  const playWarning = useCallback((options) => playAudio(AUDIO_TYPES.WARNING, options), [playAudio]);
-  const playButtonPress = useCallback((options) => playAudio(AUDIO_TYPES.BUTTON_PRESS, options), [playAudio]);
-  const playNavigation = useCallback((options) => playAudio(AUDIO_TYPES.NAVIGATION, options), [playAudio]);
-  const playFocus = useCallback((options) => playAudio(AUDIO_TYPES.FOCUS, options), [playAudio]);
-  const playAchievement = useCallback((options) => playAudio(AUDIO_TYPES.ACHIEVEMENT, options), [playAudio]);
+  const playSuccess = useCallback(
+    (options) => playAudio(AUDIO_TYPES.SUCCESS, options),
+    [playAudio],
+  );
+  const playError = useCallback(
+    (options) => playAudio(AUDIO_TYPES.ERROR, options),
+    [playAudio],
+  );
+  const playWarning = useCallback(
+    (options) => playAudio(AUDIO_TYPES.WARNING, options),
+    [playAudio],
+  );
+  const playButtonPress = useCallback(
+    (options) => playAudio(AUDIO_TYPES.BUTTON_PRESS, options),
+    [playAudio],
+  );
+  const playNavigation = useCallback(
+    (options) => playAudio(AUDIO_TYPES.NAVIGATION, options),
+    [playAudio],
+  );
+  const playFocus = useCallback(
+    (options) => playAudio(AUDIO_TYPES.FOCUS, options),
+    [playAudio],
+  );
+  const playAchievement = useCallback(
+    (options) => playAudio(AUDIO_TYPES.ACHIEVEMENT, options),
+    [playAudio],
+  );
 
   return {
     playAudio,
@@ -174,31 +183,59 @@ export function useAudioFeedback() {
 export function useHapticFeedback() {
   const { hasHapticFeedback } = useAccessibility();
 
-  const triggerHaptic = useCallback(async (hapticType) => {
-    if (!hasHapticFeedback) return;
-    if (Platform.OS !== 'ios' && Platform.OS !== 'android') return;
+  const triggerHaptic = useCallback(
+    async (hapticType) => {
+      if (!hasHapticFeedback) return;
+      if (Platform.OS !== "ios" && Platform.OS !== "android") return;
 
-    try {
-      if (hapticType === HAPTIC_TYPES.SELECTION) {
-        await Haptics.selectionAsync();
-      } else if (Object.values(Haptics.ImpactFeedbackStyle).includes(hapticType)) {
-        await Haptics.impactAsync(hapticType);
-      } else if (Object.values(Haptics.NotificationFeedbackType).includes(hapticType)) {
-        await Haptics.notificationAsync(hapticType);
+      try {
+        if (hapticType === HAPTIC_TYPES.SELECTION) {
+          await Haptics.selectionAsync();
+        } else if (
+          Object.values(Haptics.ImpactFeedbackStyle).includes(hapticType)
+        ) {
+          await Haptics.impactAsync(hapticType);
+        } else if (
+          Object.values(Haptics.NotificationFeedbackType).includes(hapticType)
+        ) {
+          await Haptics.notificationAsync(hapticType);
+        }
+      } catch (error) {
+        console.warn("Failed to trigger haptic feedback:", error);
       }
-    } catch (error) {
-      console.warn('Failed to trigger haptic feedback:', error);
-    }
-  }, [hasHapticFeedback]);
+    },
+    [hasHapticFeedback],
+  );
 
   // Quick haptic functions
-  const hapticLight = useCallback(() => triggerHaptic(HAPTIC_TYPES.LIGHT), [triggerHaptic]);
-  const hapticMedium = useCallback(() => triggerHaptic(HAPTIC_TYPES.MEDIUM), [triggerHaptic]);
-  const hapticHeavy = useCallback(() => triggerHaptic(HAPTIC_TYPES.HEAVY), [triggerHaptic]);
-  const hapticSuccess = useCallback(() => triggerHaptic(HAPTIC_TYPES.SUCCESS), [triggerHaptic]);
-  const hapticWarning = useCallback(() => triggerHaptic(HAPTIC_TYPES.WARNING), [triggerHaptic]);
-  const hapticError = useCallback(() => triggerHaptic(HAPTIC_TYPES.ERROR), [triggerHaptic]);
-  const hapticSelection = useCallback(() => triggerHaptic(HAPTIC_TYPES.SELECTION), [triggerHaptic]);
+  const hapticLight = useCallback(
+    () => triggerHaptic(HAPTIC_TYPES.LIGHT),
+    [triggerHaptic],
+  );
+  const hapticMedium = useCallback(
+    () => triggerHaptic(HAPTIC_TYPES.MEDIUM),
+    [triggerHaptic],
+  );
+  const hapticHeavy = useCallback(
+    () => triggerHaptic(HAPTIC_TYPES.HEAVY),
+    [triggerHaptic],
+  );
+  const hapticSuccess = useCallback(
+    () => triggerHaptic(HAPTIC_TYPES.SUCCESS),
+    [triggerHaptic],
+  );
+  const hapticWarning = useCallback(
+    () => triggerHaptic(HAPTIC_TYPES.WARNING),
+    [triggerHaptic],
+  );
+  const hapticError = useCallback(
+    () => triggerHaptic(HAPTIC_TYPES.ERROR),
+    [triggerHaptic],
+  );
+  const hapticSelection = useCallback(
+    () => triggerHaptic(HAPTIC_TYPES.SELECTION),
+    [triggerHaptic],
+  );
 
   return {
     triggerHaptic,
@@ -221,7 +258,7 @@ export function useSpeech() {
 
   // Speak text with options
   const speak = useCallback(async (text, options = {}) => {
-    if (!text || typeof text !== 'string') return;
+    if (!text || typeof text !== "string") return;
 
     try {
       // Stop any current speech
@@ -230,7 +267,7 @@ export function useSpeech() {
       }
 
       const speakOptions = {
-        language: options.language || 'en-US',
+        language: options.language || "en-US",
         pitch: options.pitch || 1.0,
         rate: options.rate || 0.8, // Slightly slower for better comprehension
         voice: options.voice,
@@ -248,7 +285,7 @@ export function useSpeech() {
         },
         onError: (error) => {
           speakingRef.current = false;
-          console.warn('Speech error:', error);
+          console.warn("Speech error:", error);
           options.onError && options.onError(error);
         },
       };
@@ -256,7 +293,7 @@ export function useSpeech() {
       await Speech.speak(text, speakOptions);
     } catch (error) {
       speakingRef.current = false;
-      console.warn('Failed to speak text:', error);
+      console.warn("Failed to speak text:", error);
     }
   }, []);
 
@@ -268,7 +305,7 @@ export function useSpeech() {
         speakingRef.current = false;
       }
     } catch (error) {
-      console.warn('Failed to stop speech:', error);
+      console.warn("Failed to stop speech:", error);
     }
   }, []);
 
@@ -282,27 +319,39 @@ export function useSpeech() {
     try {
       return await Speech.getAvailableVoicesAsync();
     } catch (error) {
-      console.warn('Failed to get available voices:', error);
+      console.warn("Failed to get available voices:", error);
       return [];
     }
   }, []);
 
   // Quick speak functions for common scenarios
-  const speakError = useCallback((message) => {
-    speak(`Error: ${message}`, { pitch: 0.9, rate: 0.7 });
-  }, [speak]);
+  const speakError = useCallback(
+    (message) => {
+      speak(`Error: ${message}`, { pitch: 0.9, rate: 0.7 });
+    },
+    [speak],
+  );
 
-  const speakSuccess = useCallback((message) => {
-    speak(`Success! ${message}`, { pitch: 1.1, rate: 0.8 });
-  }, [speak]);
+  const speakSuccess = useCallback(
+    (message) => {
+      speak(`Success! ${message}`, { pitch: 1.1, rate: 0.8 });
+    },
+    [speak],
+  );
 
-  const speakInstruction = useCallback((instruction) => {
-    speak(instruction, { rate: 0.7 }); // Slower for instructions
-  }, [speak]);
+  const speakInstruction = useCallback(
+    (instruction) => {
+      speak(instruction, { rate: 0.7 }); // Slower for instructions
+    },
+    [speak],
+  );
 
-  const speakLabel = useCallback((label) => {
-    speak(label, { rate: 0.8 });
-  }, [speak]);
+  const speakLabel = useCallback(
+    (label) => {
+      speak(label, { rate: 0.8 });
+    },
+    [speak],
+  );
 
   return {
     speak,
@@ -325,52 +374,67 @@ export function useFeedback() {
   const speech = useSpeech();
 
   // Provide combined feedback for common interactions
-  const successFeedback = useCallback((message, audioOptions) => {
-    audio.playSuccess(audioOptions);
-    haptic.hapticSuccess();
-    if (message) {
-      speech.speakSuccess(message);
-    }
-  }, [audio, haptic, speech]);
+  const successFeedback = useCallback(
+    (message, audioOptions) => {
+      audio.playSuccess(audioOptions);
+      haptic.hapticSuccess();
+      if (message) {
+        speech.speakSuccess(message);
+      }
+    },
+    [audio, haptic, speech],
+  );
 
-  const errorFeedback = useCallback((message, audioOptions) => {
-    audio.playError(audioOptions);
-    haptic.hapticError();
-    if (message) {
-      speech.speakError(message);
-    }
-  }, [audio, haptic, speech]);
+  const errorFeedback = useCallback(
+    (message, audioOptions) => {
+      audio.playError(audioOptions);
+      haptic.hapticError();
+      if (message) {
+        speech.speakError(message);
+      }
+    },
+    [audio, haptic, speech],
+  );
 
-  const buttonFeedback = useCallback((label, audioOptions) => {
-    audio.playButtonPress(audioOptions);
-    haptic.hapticLight();
-    if (label) {
-      speech.speakLabel(label);
-    }
-  }, [audio, haptic, speech]);
+  const buttonFeedback = useCallback(
+    (label, audioOptions) => {
+      audio.playButtonPress(audioOptions);
+      haptic.hapticLight();
+      if (label) {
+        speech.speakLabel(label);
+      }
+    },
+    [audio, haptic, speech],
+  );
 
-  const navigationFeedback = useCallback((destination, audioOptions) => {
-    audio.playNavigation(audioOptions);
-    haptic.hapticMedium();
-    if (destination) {
-      speech.speak(`Navigating to ${destination}`);
-    }
-  }, [audio, haptic, speech]);
+  const navigationFeedback = useCallback(
+    (destination, audioOptions) => {
+      audio.playNavigation(audioOptions);
+      haptic.hapticMedium();
+      if (destination) {
+        speech.speak(`Navigating to ${destination}`);
+      }
+    },
+    [audio, haptic, speech],
+  );
 
-  const focusFeedback = useCallback((element, audioOptions) => {
-    audio.playFocus(audioOptions);
-    haptic.hapticLight();
-    if (element) {
-      speech.speakLabel(element);
-    }
-  }, [audio, haptic, speech]);
+  const focusFeedback = useCallback(
+    (element, audioOptions) => {
+      audio.playFocus(audioOptions);
+      haptic.hapticLight();
+      if (element) {
+        speech.speakLabel(element);
+      }
+    },
+    [audio, haptic, speech],
+  );
 
   return {
     // Individual hooks
     audio,
     haptic,
     speech,
-    
+
     // Combined feedback functions
     successFeedback,
     errorFeedback,

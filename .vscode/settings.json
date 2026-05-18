@@ -1,0 +1,8 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "/^cd \"C:\\\\Users\\\\ANTHONY WAI\\\\Desktop\\\\Jasiri3\\\\Jasiri\" ; npx expo install zustand$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
+}

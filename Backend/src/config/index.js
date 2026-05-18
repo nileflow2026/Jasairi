@@ -1,5 +1,5 @@
-const dotenv = require('dotenv');
-const { z } = require('zod');
+const dotenv = require("dotenv");
+const { z } = require("zod");
 
 // Load environment variables
 dotenv.config();
@@ -7,34 +7,34 @@ dotenv.config();
 // Environment validation schema
 const configSchema = z.object({
   nodeEnv: z
-    .enum(['development', 'staging', 'production'])
-    .default('development'),
+    .enum(["development", "staging", "production"])
+    .default("development"),
   port: z.coerce.number().default(3000),
-  apiVersion: z.string().default('v1'),
+  apiVersion: z.string().default("v1"),
 
-  // Database
-  databaseUrl: z.string().min(1, 'Database URL is required'),
+  // Database (optional — app uses Appwrite as primary data store)
+  databaseUrl: z.string().optional(),
 
   // Appwrite
   appwrite: z.object({
-    endpoint: z.string().url('Valid Appwrite endpoint required'),
-    projectId: z.string().min(1, 'Appwrite Project ID required'),
-    apiKey: z.string().min(1, 'Appwrite API Key required'),
+    endpoint: z.string().url("Valid Appwrite endpoint required"),
+    projectId: z.string().min(1, "Appwrite Project ID required"),
+    apiKey: z.string().min(1, "Appwrite API Key required"),
   }),
 
   // JWT
   jwt: z.object({
-    secret: z.string().min(32, 'JWT secret must be at least 32 characters'),
-    expiresIn: z.string().default('7d'),
+    secret: z.string().min(32, "JWT secret must be at least 32 characters"),
+    expiresIn: z.string().default("7d"),
     refreshSecret: z
       .string()
-      .min(32, 'JWT refresh secret must be at least 32 characters'),
-    refreshExpiresIn: z.string().default('30d'),
+      .min(32, "JWT refresh secret must be at least 32 characters"),
+    refreshExpiresIn: z.string().default("30d"),
   }),
 
   // Redis
   redis: z.object({
-    url: z.string().default('redis://localhost:6379'),
+    url: z.string().default("redis://localhost:6379"),
     password: z.string().optional(),
   }),
 
@@ -46,20 +46,20 @@ const configSchema = z.object({
 
   // CORS
   cors: z.object({
-    origin: z.string().transform(str => str.split(',')),
+    origin: z.string().transform((str) => str.split(",")),
   }),
 
   // Logging
   logging: z.object({
-    level: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
-    file: z.string().default('logs/app.log'),
+    level: z.enum(["error", "warn", "info", "debug"]).default("info"),
+    file: z.string().default("logs/app.log"),
   }),
 
   // Security
   security: z.object({
     bcryptRounds: z.coerce.number().default(12),
-    maxFileSize: z.string().default('10mb'),
-    uploadFolder: z.string().default('uploads'),
+    maxFileSize: z.string().default("10mb"),
+    uploadFolder: z.string().default("uploads"),
   }),
 });
 
@@ -105,9 +105,9 @@ const parseConfig = () => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error('❌ Configuration validation failed:');
-      error.errors.forEach(err => {
-        console.error(`  - ${err.path.join('.')}: ${err.message}`);
+      console.error("❌ Configuration validation failed:");
+      error.errors.forEach((err) => {
+        console.error(`  - ${err.path.join(".")}: ${err.message}`);
       });
     }
     process.exit(1);

@@ -18,6 +18,8 @@ const THEME_ACTIONS = {
   TOGGLE_REDUCE_MOTION: "TOGGLE_REDUCE_MOTION",
   SET_ACCESSIBILITY_PREFERENCE: "SET_ACCESSIBILITY_PREFERENCE",
   LOAD_PREFERENCES: "LOAD_PREFERENCES",
+  // Separate action so async system-pref checks never overwrite saved user prefs
+  SET_SYSTEM_PREFERENCES: "SET_SYSTEM_PREFERENCES",
 };
 
 // Initial theme state
@@ -111,14 +113,21 @@ function themeReducer(state, action) {
       };
 
     case THEME_ACTIONS.LOAD_PREFERENCES:
+      // Only updates user preferences — does NOT touch systemPreferences
+      // so async AccessibilityInfo calls cannot overwrite saved settings.
       return {
         ...state,
         preferences: action.payload.preferences,
-        systemPreferences: action.payload.systemPreferences,
         currentTheme: applyPreferencesToTheme(
           state.themeVariant,
           action.payload.preferences,
         ),
+      };
+
+    case THEME_ACTIONS.SET_SYSTEM_PREFERENCES:
+      return {
+        ...state,
+        systemPreferences: action.payload,
       };
 
     default:
@@ -201,10 +210,7 @@ export function ThemeProvider({ children }) {
         const preferences = JSON.parse(savedPreferences);
         dispatch({
           type: THEME_ACTIONS.LOAD_PREFERENCES,
-          payload: {
-            preferences,
-            systemPreferences: state.systemPreferences,
-          },
+          payload: { preferences },
         });
       }
     } catch (error) {
@@ -262,13 +268,12 @@ export function ThemeProvider({ children }) {
     }
   };
 
+  // Use a dedicated action so user preferences are never overwritten by
+  // async AccessibilityInfo callbacks closing over stale state.
   const updateSystemPreferences = (systemPreferences) => {
     dispatch({
-      type: THEME_ACTIONS.LOAD_PREFERENCES,
-      payload: {
-        preferences: state.preferences,
-        systemPreferences,
-      },
+      type: THEME_ACTIONS.SET_SYSTEM_PREFERENCES,
+      payload: systemPreferences,
     });
   };
 

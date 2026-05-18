@@ -1,114 +1,127 @@
-const express = require('express');
-const { logger } = require('../utils/logger');
+const express = require("express");
+const { body, param, query } = require("express-validator");
+const {
+  listGames,
+  getGame,
+  startSession,
+  recordAttempt,
+  listAttempts,
+  completeSession,
+  abandonSession,
+  listSessions,
+  DIFFICULTY_LEVELS,
+} = require("../controllers/game");
+const { authenticate, requireVerified } = require("../middleware/authenticate");
+const { validate } = require("../middleware/validate");
 
 const router = express.Router();
 
-/**
- * @route   GET /api/v1/games
- * @desc    Get available games
- * @access  Private
- */
-router.get('/', async (req, res, next) => {
-  try {
-    // TODO: Implement get games logic
-    logger.info('Fetching available games');
+// All game routes require a valid, verified account (professional roles must be email-verified)
+router.use(authenticate, requireVerified);
 
-    res.json({
-      success: true,
-      message: 'Get games endpoint - TODO: Implement',
-      data: {
-        games: [
-          {
-            id: '1',
-            name: 'Pattern Matching',
-            type: 'pattern-matching',
-            description: 'Match colorful patterns to improve visual processing',
-            targetSkills: ['visual-processing', 'attention'],
-            minAge: 5,
-            maxAge: 12,
-            estimatedDuration: 10,
-            accessibilityFeatures: ['high-contrast', 'large-buttons'],
-          },
-          {
-            id: '2',
-            name: 'Memory Cards',
-            type: 'memory',
-            description: 'Find matching pairs to strengthen memory skills',
-            targetSkills: ['memory', 'attention'],
-            minAge: 4,
-            maxAge: 10,
-            estimatedDuration: 8,
-            accessibilityFeatures: ['audio-cues', 'simplified-ui'],
-          },
-        ],
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// ── Catalogue ─────────────────────────────────────────────────────────────────
 
-/**
- * @route   POST /api/v1/games/:id/sessions
- * @desc    Start new game session
- * @access  Private
- */
-router.post('/:id/sessions', async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { childId, difficulty } = req.body;
+// GET /games
+router.get("/", listGames);
 
-    // TODO: Implement start session logic
-    logger.info('Starting game session', { gameId: id, childId, difficulty });
+// GET /games/sessions  — must come BEFORE /:id so Express doesn't treat "sessions" as a param
+router.get(
+  "/sessions",
+  validate([
+    query("childId").optional().isString().trim().notEmpty(),
+    query("status")
+      .optional()
+      .isIn(["active", "completed", "abandoned"])
+      .withMessage("status must be active, completed, or abandoned"),
+    query("gameId").optional().isString().trim().notEmpty(),
+  ]),
+  listSessions,
+);
 
-    res.status(201).json({
-      success: true,
-      message: 'Start session endpoint - TODO: Implement',
-      data: {
-        session: {
-          id: 'session-123',
-          gameId: id,
-          childId,
-          difficulty,
-          startTime: new Date().toISOString(),
-          status: 'active',
-        },
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// GET /games/:id
+router.get("/:id", validate([param("id").notEmpty()]), getGame);
 
-/**
- * @route   PUT /api/v1/games/sessions/:sessionId
- * @desc    Update game session (progress, completion)
- * @access  Private
- */
-router.put('/sessions/:sessionId', async (req, res, next) => {
-  try {
-    const { sessionId } = req.params;
-    const { score, accuracy, interactions, completionStatus } = req.body;
+// ── Session lifecycle ─────────────────────────────────────────────────────────
 
-    // TODO: Implement update session logic
-    logger.info('Updating game session', { sessionId, score, accuracy });
+// POST /games/:id/sessions — start a session
+router.post(
+  "/:id/sessions",
+  validate([
+    param("id").notEmpty().withMessage("Game ID required"),
+    body("childId").notEmpty().withMessage("childId is required"),
+    body("difficulty")
+      .isIn(DIFFICULTY_LEVELS)
+      .withMessage("difficulty must be beginner, intermediate, or advanced"),
+  ]),
+  startSession,
+);
 
-    res.json({
-      success: true,
-      message: 'Update session endpoint - TODO: Implement',
-      data: {
-        session: {
-          id: sessionId,
-          score,
-          accuracy,
-          completionStatus,
-          updatedAt: new Date().toISOString(),
-        },
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// PATCH /games/:id/sessions/:sessionId — complete a session
+router.patch(
+  "/:id/sessions/:sessionId",
+  validate([
+    param("sessionId").notEmpty(),
+    body("finalScore")
+      .optional()
+      .isInt({ min: 0, max: 1000 })
+      .withMessage("finalScore must be an integer 0–1000"),
+    body("completionTimeMs")
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage("completionTimeMs must be a non-negative integer"),
+    body("notes")
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ max: 500 })
+      .withMessage("notes must be ≤500 characters"),
+  ]),
+  completeSession,
+);
+
+// DELETE /games/:id/sessions/:sessionId — abandon a session
+router.delete(
+  "/:id/sessions/:sessionId",
+  validate([param("sessionId").notEmpty()]),
+  abandonSession,
+);
+
+// ── Attempts ──────────────────────────────────────────────────────────────────
+
+// POST /games/:id/sessions/:sessionId/attempts — record one attempt
+router.post(
+  "/:id/sessions/:sessionId/attempts",
+  validate([
+    param("sessionId").notEmpty().withMessage("sessionId is required"),
+    body("score")
+      .isInt({ min: 0, max: 1000 })
+      .withMessage("score must be an integer 0–1000"),
+    body("completionTimeMs")
+      .isInt({ min: 0 })
+      .withMessage("completionTimeMs must be a non-negative integer"),
+    body("correct")
+      .optional()
+      .isBoolean()
+      .withMessage("correct must be a boolean"),
+    body("difficulty")
+      .optional()
+      .isIn(DIFFICULTY_LEVELS)
+      .withMessage("difficulty must be beginner, intermediate, or advanced"),
+    body("notes")
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ max: 500 })
+      .withMessage("notes must be ≤500 characters"),
+  ]),
+  recordAttempt,
+);
+
+// GET /games/:id/sessions/:sessionId/attempts — list attempts for a session
+router.get(
+  "/:id/sessions/:sessionId/attempts",
+  validate([param("sessionId").notEmpty()]),
+  listAttempts,
+);
 
 module.exports = { gameRoutes: router };

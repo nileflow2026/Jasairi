@@ -1,48 +1,71 @@
-const { logger } = require('../utils/logger');
+const { logger } = require("../utils/logger");
+const { AppError, ValidationError } = require("../utils/errors");
 
 /**
- * Global error handler middleware
+ * Global error handler middleware.
+ *
+ * Distinguishes between operational errors (AppError subclasses, expected
+ * failures) and programming errors (unexpected, log full stack).
  */
-const errorHandler = (error, req, res, next) => {
-  // Log the error
-  logger.error('Unhandled error:', {
+const errorHandler = (error, req, res, _next) => {
+  const isOperational = error instanceof AppError;
+  const isDevelopment = process.env.NODE_ENV === "development";
+
+  if (isOperational) {
+    // Expected application error — log at warn level, expose to client
+    logger.warn("Application error", {
+      code: error.code,
+      message: error.message,
+      statusCode: error.statusCode,
+      url: req.originalUrl,
+      method: req.method,
+    });
+
+    const body = {
+      success: false,
+      code: error.code,
+      message: error.message,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Include field-level errors for validation failures
+    if (error instanceof ValidationError && Array.isArray(error.errors)) {
+      body.errors = error.errors;
+    }
+
+    return res.status(error.statusCode).json(body);
+  }
+
+  // Unexpected programming error — log full stack
+  logger.error("Unexpected error", {
     error: error.message,
     stack: error.stack,
     url: req.originalUrl,
     method: req.method,
     ip: req.ip,
-    userAgent: req.get('User-Agent'),
   });
 
-  // Don't expose error details in production
-  const isDevelopment = process.env.NODE_ENV === 'development';
-
-  const errorResponse = {
+  res.status(500).json({
     success: false,
-    message: isDevelopment ? error.message : 'Internal server error',
+    code: "INTERNAL_ERROR",
+    message: isDevelopment
+      ? error.message
+      : "An unexpected error occurred. Please try again later.",
     timestamp: new Date().toISOString(),
     ...(isDevelopment && { stack: error.stack }),
-  };
-
-  // Send error response
-  const statusCode = error.statusCode || error.status || 500;
-  res.status(statusCode).json(errorResponse);
+  });
 };
 
 /**
- * 404 Not Found handler
+ * 404 catch-all — placed after all valid routes in app.js.
  */
 const notFoundHandler = (req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found',
-    path: req.originalUrl,
-    method: req.method,
+    code: "NOT_FOUND",
+    message: `Cannot ${req.method} ${req.originalUrl}`,
     timestamp: new Date().toISOString(),
   });
 };
 
-module.exports = {
-  errorHandler,
-  notFoundHandler,
-};
+module.exports = { errorHandler, notFoundHandler };

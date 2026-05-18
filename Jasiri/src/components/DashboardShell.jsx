@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from "react";
 import { View } from "react-native";
+import { useRouter } from "expo-router";
 import { ChildDashboard } from "./ChildDashboard";
 import { ParentDashboard } from "./ParentDashboard";
 import { useTheme } from "../theme/ThemeProvider";
@@ -19,6 +20,7 @@ const STORAGE_KEYS = {
 
 export function DashboardShell() {
   const { theme } = useTheme();
+  const router = useRouter();
   const [currentView, setCurrentView] = useState("child"); // 'child' or 'parent'
   const [childData, setChildData] = useState({
     name: "Champion",
@@ -79,24 +81,52 @@ export function DashboardShell() {
 
   const handleNavigation = async (destination) => {
     try {
+      const destinationPath =
+        typeof destination === "string"
+          ? destination
+          : destination?.path || "child";
+
       await AsyncStorage.setItem(
         STORAGE_KEYS.DASHBOARD_MODE,
-        destination === "parent" ? "parent" : "child",
+        destinationPath === "parent" ? "parent" : "child",
       );
 
-      if (destination === "parent" || destination === "child") {
-        setCurrentView(destination);
+      if (destinationPath === "parent" || destinationPath === "child") {
+        setCurrentView(destinationPath);
+      } else if (destinationPath === "games") {
+        const gameId = typeof destination === "object" ? destination.game : undefined;
+        router.push(gameId ? `/games?game=${gameId}` : "/games");
+      } else if (destinationPath === "stories") {
+        const storyId = typeof destination === "object" ? destination.story : undefined;
+        router.push(storyId ? `/stories?story=${storyId}` : "/stories");
+      } else if (destinationPath === "music") {
+        const songId = typeof destination === "object" ? destination.song : undefined;
+        router.push(songId ? `/music?song=${songId}` : "/music");
       } else {
         // Handle navigation to specific activities within child view
-        console.log("Navigating to activity:", destination);
+        console.log("Navigating to activity:", destinationPath);
         // Here you would navigate to specific activity screens
         // For now, we'll stay on child dashboard
       }
     } catch (error) {
       console.log("Error saving dashboard mode:", error);
       // Still navigate even if saving fails
-      if (destination === "parent" || destination === "child") {
-        setCurrentView(destination);
+      const destinationPath =
+        typeof destination === "string"
+          ? destination
+          : destination?.path || "child";
+
+      if (destinationPath === "parent" || destinationPath === "child") {
+        setCurrentView(destinationPath);
+      } else if (destinationPath === "games") {
+        const gameId = typeof destination === "object" ? destination.game : undefined;
+        router.push(gameId ? `/games?game=${gameId}` : "/games");
+      } else if (destinationPath === "stories") {
+        const storyId = typeof destination === "object" ? destination.story : undefined;
+        router.push(storyId ? `/stories?story=${storyId}` : "/stories");
+      } else if (destinationPath === "music") {
+        const songId = typeof destination === "object" ? destination.song : undefined;
+        router.push(songId ? `/music?song=${songId}` : "/music");
       }
     }
   };

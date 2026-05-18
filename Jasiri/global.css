@@ -1,3 +1,105 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * JASIRI Global CSS Utilities
+ * Accessibility-first component classes for NativeWind
+ */
+
+@layer components {
+  /* ── Cards ─────────────────────────────────────────────────── */
+  .card {
+    @apply bg-jasiri-surface rounded-3xl p-5;
+  }
+
+  .card-warm {
+    @apply bg-jasiri-surface rounded-3xl p-5 border border-jasiri-border;
+  }
+
+  /* ── Touch targets (WCAG 2.5.5 — min 44×44 dp) ─────────────── */
+  .touch-safe {
+    @apply min-h-14 justify-center items-center;
+  }
+
+  .touch-large {
+    @apply min-h-16 justify-center items-center;
+  }
+
+  /* ── Typography ─────────────────────────────────────────────── */
+  .heading-display {
+    @apply text-5xl font-pbold text-jasiri-text leading-tight;
+  }
+
+  .heading-xl {
+    @apply text-4xl font-pbold text-jasiri-text leading-tight;
+  }
+
+  .heading-lg {
+    @apply text-3xl font-pbold text-jasiri-text leading-snug;
+  }
+
+  .heading-md {
+    @apply text-2xl font-psemibold text-jasiri-text;
+  }
+
+  .body-lg {
+    @apply text-lg font-pregular text-jasiri-muted leading-relaxed;
+  }
+
+  .body-base {
+    @apply text-base font-pregular text-jasiri-muted leading-relaxed;
+  }
+
+  .label-text {
+    @apply text-sm font-psemibold text-jasiri-text;
+  }
+
+  .caption-text {
+    @apply text-xs font-pmedium text-jasiri-muted;
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────────── */
+  .btn-primary {
+    @apply bg-jasiri-orange rounded-2xl py-4 px-6 items-center justify-center min-h-14;
+  }
+
+  .btn-secondary {
+    @apply bg-jasiri-blue-light rounded-2xl py-4 px-6 items-center justify-center min-h-14;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent rounded-2xl py-4 px-6 items-center justify-center min-h-14;
+  }
+
+  /* ── Inputs ──────────────────────────────────────────────────── */
+  .input-field {
+    @apply bg-jasiri-surface border border-jasiri-border rounded-2xl px-5 py-4 text-base font-pregular text-jasiri-text min-h-14;
+  }
+
+  .input-field-focused {
+    @apply bg-jasiri-surface border-jasiri-blue rounded-2xl px-5 py-4 text-base font-pregular text-jasiri-text min-h-14;
+  }
+
+  /* ── Badges / Pills ──────────────────────────────────────────── */
+  .badge-orange {
+    @apply bg-jasiri-orange-light rounded-full px-3 py-1;
+  }
+
+  .badge-blue {
+    @apply bg-jasiri-blue-light rounded-full px-3 py-1;
+  }
+
+  .badge-green {
+    @apply bg-jasiri-green-light rounded-full px-3 py-1;
+  }
+
+  /* ── Screen containers ───────────────────────────────────────── */
+  .screen-bg {
+    @apply flex-1 bg-jasiri-bg;
+  }
+
+  .screen-padding {
+    @apply px-6 pt-14 pb-8;
+  }
+}

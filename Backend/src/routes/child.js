@@ -1,99 +1,108 @@
-const express = require('express');
-const { logger } = require('../utils/logger');
+const express = require("express");
+const { body, param } = require("express-validator");
+const {
+  listChildren,
+  createChild,
+  getChild,
+  updateChild,
+  deleteChild,
+  getProgress,
+} = require("../controllers/child");
+const {
+  authenticate,
+  requireVerified,
+  requireRole,
+} = require("../middleware/authenticate");
+const { validate } = require("../middleware/validate");
 
 const router = express.Router();
 
-/**
- * @route   GET /api/v1/children
- * @desc    Get all children for authenticated guardian
- * @access  Private
- */
-router.get('/', async (req, res, next) => {
-  try {
-    // TODO: Implement get children logic
-    logger.info('Fetching children for guardian');
+// All child routes require authentication.
+// Professional roles (teacher/therapist) must also be verified.
+router.use(authenticate, requireVerified);
 
-    res.json({
-      success: true,
-      message: 'Get children endpoint - TODO: Implement',
-      data: {
-        children: [
-          {
-            id: '1',
-            name: 'Sample Child',
-            age: 8,
-            learningProfile: {
-              accuracy: 0.85,
-              averageSpeed: 2500,
-              strongSkills: ['visual-processing', 'memory'],
-              challengeAreas: ['fine-motor'],
-            },
-          },
-        ],
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// GET /children
+router.get("/", listChildren);
 
-/**
- * @route   POST /api/v1/children
- * @desc    Create new child profile
- * @access  Private
- */
-router.post('/', async (req, res, next) => {
-  try {
-    const { name, age, preferences } = req.body;
+// POST /children
+router.post(
+  "/",
+  validate([
+    body("name")
+      .trim()
+      .notEmpty()
+      .isLength({ max: 100 })
+      .withMessage("Child name is required and must be ≤100 characters"),
+    body("age")
+      .isInt({ min: 1, max: 18 })
+      .withMessage("Age must be between 1 and 18"),
+    body("dateOfBirth")
+      .optional()
+      .isISO8601()
+      .withMessage("Invalid date format"),
+    body("medicalInfo")
+      .optional()
+      .isString()
+      .isLength({ max: 2000 })
+      .withMessage("medicalInfo must be ≤2000 characters"),
+    body("emergencyContact")
+      .optional()
+      .isString()
+      .isLength({ max: 500 })
+      .withMessage("emergencyContact must be ≤500 characters"),
+    body("photoUrl")
+      .optional()
+      .isURL()
+      .withMessage("photoUrl must be a valid URL"),
+  ]),
+  createChild,
+);
 
-    // TODO: Implement create child logic
-    logger.info('Creating child profile', { name, age });
+// GET /children/:id
+router.get("/:id", validate([param("id").notEmpty()]), getChild);
 
-    res.status(201).json({
-      success: true,
-      message: 'Create child endpoint - TODO: Implement',
-      data: {
-        child: {
-          id: '2',
-          name,
-          age,
-          createdAt: new Date().toISOString(),
-        },
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// PATCH /children/:id
+router.patch(
+  "/:id",
+  validate([
+    param("id").notEmpty(),
+    body("age")
+      .optional()
+      .isInt({ min: 1, max: 18 })
+      .withMessage("Age must be between 1 and 18"),
+    body("name")
+      .optional()
+      .trim()
+      .notEmpty()
+      .isLength({ max: 100 })
+      .withMessage("Name cannot be blank and must be ≤100 characters"),
+    body("medicalInfo")
+      .optional()
+      .isString()
+      .isLength({ max: 2000 })
+      .withMessage("medicalInfo must be ≤2000 characters"),
+    body("emergencyContact")
+      .optional()
+      .isString()
+      .isLength({ max: 500 })
+      .withMessage("emergencyContact must be ≤500 characters"),
+    body("photoUrl")
+      .optional()
+      .isURL()
+      .withMessage("photoUrl must be a valid URL"),
+  ]),
+  updateChild,
+);
 
-/**
- * @route   GET /api/v1/children/:id/progress
- * @desc    Get child's learning progress
- * @access  Private
- */
-router.get('/:id/progress', async (req, res, next) => {
-  try {
-    const { id } = req.params;
+// DELETE /children/:id — only parents and caregivers may remove a child profile
+router.delete(
+  "/:id",
+  requireRole("parent", "caregiver"),
+  validate([param("id").notEmpty()]),
+  deleteChild,
+);
 
-    // TODO: Implement get progress logic
-    logger.info('Fetching progress for child', { childId: id });
-
-    res.json({
-      success: true,
-      message: 'Get progress endpoint - TODO: Implement',
-      data: {
-        progress: {
-          totalPlayTime: 1200, // minutes
-          sessionsCompleted: 45,
-          averageAccuracy: 0.82,
-          improvementAreas: ['fine-motor', 'attention'],
-          recentAchievements: [],
-        },
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// GET /children/:id/progress
+router.get("/:id/progress", validate([param("id").notEmpty()]), getProgress);
 
 module.exports = { childRoutes: router };
