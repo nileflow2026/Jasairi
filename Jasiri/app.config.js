@@ -38,11 +38,11 @@ export default ({ config }) => {
     // Override android package for production safety
     android: {
       ...config.android,
-      package: "app.jasiri.learning",
+      package: "com.jasiri",
     },
     ios: {
       ...config.ios,
-      bundleIdentifier: "app.jasiri.learning",
+      bundleIdentifier: "com.jasiri",
     },
     updates: {
       url:

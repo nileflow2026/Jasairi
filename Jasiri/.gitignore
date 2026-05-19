@@ -46,3 +46,11 @@ app-example
 # generated native folders
 /ios
 /android
+
+
+
+# local credentials for Google Play Store and Apple App Store — NEVER commit
+credentials.json
+
+# local credentials for Google Play Store and Apple App Store — NEVER commit
+credentials

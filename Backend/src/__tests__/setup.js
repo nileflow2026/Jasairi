@@ -57,22 +57,3 @@ global.testHelper = {
     guardianIds: ["1"],
   },
 };
-function beforeAll(arg0) {
-  throw new Error("Function not implemented.");
-}
-
-function beforeAll(arg0) {
-  throw new Error("Function not implemented.");
-}
-
-function beforeAll(arg0) {
-  throw new Error("Function not implemented.");
-}
-
-function beforeAll(arg0) {
-  throw new Error("Function not implemented.");
-}
-
-function afterAll(arg0) {
-  throw new Error("Function not implemented.");
-}
