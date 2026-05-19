@@ -16,6 +16,7 @@
         "simulator": true
       },
       "env": {
+        "EXPO_PUBLIC_API_URL": "https://jasairi-backend.onrender.com",
         "EXPO_PUBLIC_APPWRITE_ENDPOINT": "https://cloud.appwrite.io/v1"
       }
     },

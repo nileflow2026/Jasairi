@@ -6,7 +6,7 @@
  *  - Automatic token refresh on 401
  *  - Consistent error normalization
  *  - Offline detection
- *  - Timeout (10 s) to avoid hanging on poor connectivity
+ *  - Timeout (30 s) + 1 retry to handle Render/Railway cold starts
  *
  * Security: auth tokens are stored in expo-secure-store (OS keychain / Keystore)
  * so they are encrypted at rest and inaccessible to other apps.
@@ -14,8 +14,12 @@
 
 import * as SecureStore from "expo-secure-store";
 import { API_PREFIX } from "../config/api";
+import logger from "./logger";
 
-const TIMEOUT_MS = 10_000;
+// Render free-tier cold starts can take 30–60 s on the first request.
+// 30 s timeout + 1 automatic retry covers the vast majority of cold starts.
+const TIMEOUT_MS = 30_000;
+const RETRY_DELAY_MS = 2_000;
 // SecureStore keys must match [A-Za-z0-9._-] only, max 256 chars
 const TOKEN_KEY = "jasiri_access_token";
 const REFRESH_KEY = "jasiri_refresh_token";
@@ -103,9 +107,22 @@ async function attemptRefresh() {
  * @param {RequestInit} options  - fetch options
  * @param {boolean} withAuth     - Attach Authorization header (default true)
  */
-export async function apiRequest(path, options = {}, withAuth = true) {
+/**
+ * Internal: single attempt with its own AbortController + timeout.
+ * @param {string} path
+ * @param {RequestInit} options
+ * @param {boolean} withAuth
+ */
+async function _attemptRequest(path, options, withAuth, attempt = 1) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const method = (options.method ?? "GET").toUpperCase();
+  const url = `${API_PREFIX}${path}`;
+
+  logger.debug(`[API] ${method} ${path} (attempt ${attempt})`, {
+    url,
+    withAuth,
+  });
 
   try {
     const headers = {
@@ -118,7 +135,6 @@ export async function apiRequest(path, options = {}, withAuth = true) {
       if (token) headers.Authorization = `Bearer ${token}`;
     }
 
-    const url = `${API_PREFIX}${path}`;
     let res = await fetch(url, {
       ...options,
       headers,
@@ -178,17 +194,32 @@ export async function apiRequest(path, options = {}, withAuth = true) {
       throw err;
     }
 
+    logger.debug(`[API] ${method} ${path} → ${res.status}`);
     return body;
   } catch (err) {
     if (err.name === "AbortError") {
+      logger.warn(
+        `[API] TIMEOUT ${method} ${path} after ${TIMEOUT_MS}ms (attempt ${attempt})`,
+        {
+          url,
+          timeoutMs: TIMEOUT_MS,
+        },
+      );
       const timeout = new Error(
         "Request timed out. Check your internet connection.",
       );
       timeout.status = 408;
       throw timeout;
     }
-    // Network failure
+    // Network failure (no status means fetch never got a response)
     if (!err.status) {
+      logger.warn(
+        `[API] NETWORK ERROR ${method} ${path} (attempt ${attempt})`,
+        {
+          url,
+          error: err.message,
+        },
+      );
       const network = new Error(
         "Cannot connect to server. You may be offline.",
       );
@@ -196,9 +227,41 @@ export async function apiRequest(path, options = {}, withAuth = true) {
       network.isNetworkError = true;
       throw network;
     }
+    logger.warn(`[API] ERROR ${method} ${path} → ${err.status}`, {
+      url,
+      status: err.status,
+      message: err.message,
+    });
     throw err;
   } finally {
     clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Make an authenticated request to the JASIRI backend.
+ * Retries once on timeout or network error to handle cold starts.
+ *
+ * @param {string} path          - Relative path, e.g. "/children"
+ * @param {RequestInit} options  - fetch options
+ * @param {boolean} withAuth     - Attach Authorization header (default true)
+ */
+export async function apiRequest(path, options = {}, withAuth = true) {
+  try {
+    return await _attemptRequest(path, options, withAuth, 1);
+  } catch (err) {
+    // Retry once on timeout or network error (covers Render cold starts)
+    if (err.status === 408 || err.isNetworkError) {
+      const method = (options.method ?? "GET").toUpperCase();
+      logger.warn(
+        `[API] Retrying ${method} ${path} in ${RETRY_DELAY_MS}ms after ${
+          err.status === 408 ? "timeout" : "network error"
+        }`,
+      );
+      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+      return _attemptRequest(path, options, withAuth, 2);
+    }
+    throw err;
   }
 }
 

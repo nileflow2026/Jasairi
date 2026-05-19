@@ -20,6 +20,13 @@ const { healthRoutes } = require("./routes/health");
 
 const app = express();
 
+// ── Reverse proxy trust ───────────────────────────────────────────────────────
+// Render (and most PaaS providers) sit behind a reverse proxy that adds
+// X-Forwarded-For. Without this, express-rate-limit cannot read the real
+// client IP and throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+// '1' = trust one hop (the PaaS load balancer) — safe for Render/Railway.
+app.set("trust proxy", 1);
+
 // ── Request ID ────────────────────────────────────────────────────────────────
 // Attach a per-request ID for tracing across logs (A09).
 // Clients receive it as X-Request-Id for support correlation.

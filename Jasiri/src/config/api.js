@@ -35,3 +35,14 @@ function resolveBaseUrl() {
 export const API_BASE_URL = resolveBaseUrl();
 export const API_VERSION = "v1";
 export const API_PREFIX = `${API_BASE_URL}/api/${API_VERSION}`;
+
+// Log resolved URL at startup so you can verify the correct backend is targeted.
+// Visible in the Metro / Expo Go console and in `npx expo start` output.
+if (__DEV__) {
+  console.info(
+    "[API] EXPO_PUBLIC_API_URL env:",
+    process.env.EXPO_PUBLIC_API_URL ?? "(not set)",
+  );
+  console.info("[API] Resolved base URL:", API_BASE_URL);
+  console.info("[API] Full prefix:", API_PREFIX);
+}

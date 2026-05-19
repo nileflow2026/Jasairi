@@ -37,8 +37,10 @@ const errorHandler = (error, req, res, _next) => {
   }
 
   // Unexpected programming error — log full stack
+  // err.cause contains the underlying OS/network error for fetch failures
   logger.error("Unexpected error", {
     error: error.message,
+    cause: error.cause?.message ?? error.cause ?? undefined,
     stack: error.stack,
     url: req.originalUrl,
     method: req.method,
