@@ -1,0 +1,24 @@
+name: Build & Submit Production (Android)
+
+# Triggered automatically when a version tag (v*.*.*) is pushed.
+# Builds a signed AAB and submits it to the Google Play Internal Track.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build_android_production:
+    type: build
+    params:
+      platform: android
+      profile: production
+
+  submit_android:
+    type: submit
+    params:
+      platform: android
+      profile: production
+    needs:
+      - build_android_production

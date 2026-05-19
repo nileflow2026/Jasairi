@@ -71,9 +71,20 @@ jobs:
     # Only deploy on pushes to main, not on PRs
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify Railway token is configured
+        run: |
+          if [ -z "${{ secrets.RAILWAY_TOKEN }}" ]; then
+            echo "❌ RAILWAY_TOKEN secret is not set in GitHub repository settings."
+            echo "Go to Settings → Secrets and variables → Actions → New repository secret"
+            exit 1
+          fi
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
