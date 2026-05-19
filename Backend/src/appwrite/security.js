@@ -1,5 +1,4 @@
 // @ts-nocheck
-const { Permission, Role } = require('node-appwrite');
 
 /**
  * Security and Privacy Service for Child Safety
@@ -65,7 +64,7 @@ class SecurityService {
         throw new Error('Unknown content type for moderation');
       }
 
-      const moderationResult = {
+      let moderationResult = {
         approved: true,
         flagged: false,
         requiresReview: rules.requiresReview,
