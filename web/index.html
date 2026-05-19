@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JASIRI – Assistive Learning for Every Child</title>
+    <meta
+      name="description"
+      content="JASIRI is an AI-powered assistive learning platform designed for children with Down syndrome. Built on dignity, inclusion, and trust."
+    />
+    <style>
+      /* ─── Reset & Base ─────────────────────────────── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --color-primary: #6c63ff;
+        --color-primary-dk: #5148d4;
+        --color-accent: #ffc857;
+        --color-bg: #f8f7ff;
+        --color-surface: #ffffff;
+        --color-text: #2d2d3a;
+        --color-muted: #6b6b80;
+        --color-border: #e4e3f0;
+        --radius: 16px;
+        --max-width: 900px;
+        --font: "Segoe UI", system-ui, sans-serif;
+      }
+
+      body {
+        font-family: var(--font);
+        background: var(--color-bg);
+        color: var(--color-text);
+        line-height: 1.7;
+        font-size: 1rem;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      /* ─── Nav ───────────────────────────────────────── */
+      nav {
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem;
+        height: 64px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .nav-logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--color-primary);
+        letter-spacing: -0.5px;
+      }
+
+      .nav-logo span {
+        color: var(--color-accent);
+      }
+
+      nav ul {
+        list-style: none;
+        display: flex;
+        gap: 2rem;
+      }
+
+      nav ul a {
+        font-size: 0.9rem;
+        color: var(--color-muted);
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+
+      nav ul a:hover {
+        color: var(--color-primary);
+      }
+
+      /* ─── Hero ──────────────────────────────────────── */
+      .hero {
+        background: linear-gradient(
+          135deg,
+          var(--color-primary) 0%,
+          #8b83ff 100%
+        );
+        color: #fff;
+        text-align: center;
+        padding: 6rem 1.5rem 5rem;
+      }
+
+      .hero-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 100px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.35rem 1rem;
+        letter-spacing: 0.5px;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+      }
+
+      .hero h1 {
+        font-size: clamp(2rem, 5vw, 3.25rem);
+        font-weight: 800;
+        line-height: 1.2;
+        max-width: 700px;
+        margin: 0 auto 1.25rem;
+      }
+
+      .hero h1 span {
+        color: var(--color-accent);
+      }
+
+      .hero p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        max-width: 520px;
+        margin: 0 auto 2.5rem;
+      }
+
+      .hero-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        display: inline-block;
+        border-radius: 100px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 0.85rem 2rem;
+        cursor: pointer;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-primary {
+        background: var(--color-accent);
+        color: #2d2d3a;
+      }
+
+      .btn-outline {
+        background: transparent;
+        color: #fff;
+        border: 2px solid rgba(255, 255, 255, 0.6);
+      }
+
+      /* ─── Section wrapper ───────────────────────────── */
+      .section {
+        max-width: var(--max-width);
+        margin: 0 auto;
+        padding: 5rem 1.5rem;
+      }
+
+      .section-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--color-primary);
+        margin-bottom: 0.75rem;
+      }
+
+      .section h2 {
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        font-weight: 800;
+        margin-bottom: 1rem;
+        line-height: 1.25;
+      }
+
+      .section > p {
+        font-size: 1rem;
+        color: var(--color-muted);
+        max-width: 580px;
+        margin-bottom: 3rem;
+      }
+
+      /* ─── Feature grid ──────────────────────────────── */
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.25rem;
+      }
+
+      .feature-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        padding: 1.75rem;
+      }
+
+      .feature-card .icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        display: block;
+      }
+
+      .feature-card h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .feature-card p {
+        font-size: 0.9rem;
+        color: var(--color-muted);
+        line-height: 1.6;
+      }
+
+      /* ─── Values strip ──────────────────────────────── */
+      .values-strip {
+        background: var(--color-primary);
+        color: #fff;
+        padding: 4rem 1.5rem;
+        text-align: center;
+      }
+
+      .values-strip h2 {
+        font-size: clamp(1.4rem, 3vw, 1.9rem);
+        font-weight: 800;
+        margin-bottom: 0.75rem;
+      }
+
+      .values-strip blockquote {
+        font-size: 1.15rem;
+        font-style: italic;
+        opacity: 0.9;
+        max-width: 500px;
+        margin: 0 auto 2.5rem;
+      }
+
+      .values-list {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        list-style: none;
+      }
+
+      .values-list li {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 100px;
+        padding: 0.5rem 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      /* ─── Who it's for ──────────────────────────────── */
+      .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+      }
+
+      .user-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        padding: 1.5rem 1.25rem;
+        text-align: center;
+      }
+
+      .user-card .avatar {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+        display: block;
+      }
+
+      .user-card h3 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.35rem;
+      }
+
+      .user-card p {
+        font-size: 0.82rem;
+        color: var(--color-muted);
+      }
+
+      /* ─── CTA banner ────────────────────────────────── */
+      .cta-banner {
+        background: var(--color-accent);
+        border-radius: var(--radius);
+        padding: 3rem 2rem;
+        text-align: center;
+        margin: 0 1.5rem 5rem;
+        max-width: var(--max-width);
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .cta-banner h2 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #2d2d3a;
+        margin-bottom: 0.75rem;
+      }
+
+      .cta-banner p {
+        color: #3a3a3a;
+        margin-bottom: 1.75rem;
+        font-size: 0.95rem;
+      }
+
+      .btn-dark {
+        background: var(--color-primary);
+        color: #fff;
+      }
+
+      /* ─── Footer ────────────────────────────────────── */
+      footer {
+        background: var(--color-surface);
+        border-top: 1px solid var(--color-border);
+        padding: 2.5rem 1.5rem;
+      }
+
+      .footer-inner {
+        max-width: var(--max-width);
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .footer-logo {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--color-primary);
+      }
+
+      .footer-logo span {
+        color: var(--color-accent);
+      }
+
+      .footer-links {
+        display: flex;
+        gap: 1.5rem;
+        list-style: none;
+      }
+
+      .footer-links a {
+        font-size: 0.875rem;
+        color: var(--color-muted);
+      }
+
+      .footer-links a:hover {
+        color: var(--color-primary);
+      }
+
+      .footer-copy {
+        font-size: 0.8rem;
+        color: var(--color-muted);
+        width: 100%;
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--color-border);
+      }
+
+      /* ─── Responsive ────────────────────────────────── */
+      @media (max-width: 600px) {
+        nav ul {
+          display: none;
+        }
+        .hero {
+          padding: 4rem 1.25rem 3.5rem;
+        }
+        .cta-banner {
+          margin: 0 1rem 3rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ── Nav ───────────────────────────────────────── -->
+    <nav>
+      <div class="nav-logo">JA<span>SIRI</span></div>
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#who">Who It's For</a></li>
+        <li><a href="privacy-policy.html">Privacy</a></li>
+      </ul>
+    </nav>
+
+    <!-- ── Hero ──────────────────────────────────────── -->
+    <section class="hero">
+      <div class="hero-badge">🌍 Built for Africa · Powered by Ubuntu</div>
+      <h1>Learning that adapts to <span>every child</span></h1>
+      <p>
+        JASIRI is an AI-powered assistive learning platform designed for
+        children with Down syndrome — calm, playful, and built around each
+        child's unique strengths.
+      </p>
+      <div class="hero-actions">
+        <a href="#features" class="btn btn-primary">Explore Features</a>
+        <a href="privacy-policy.html" class="btn btn-outline">Privacy Policy</a>
+      </div>
+    </section>
+
+    <!-- ── Features ──────────────────────────────────── -->
+    <div class="section" id="features">
+      <p class="section-label">What JASIRI offers</p>
+      <h2>Everything a child needs to grow with confidence</h2>
+      <p>
+        Each feature is designed to reduce cognitive load, reward effort, and
+        build real learning outcomes.
+      </p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="icon">🎮</span>
+          <h3>Serious Games</h3>
+          <p>
+            Short, engaging educational games covering memory, pattern
+            recognition, sequencing, and motor coordination.
+          </p>
+        </div>
+        <div class="feature-card">
+          <span class="icon">🤖</span>
+          <h3>AI Personalisation</h3>
+          <p>
+            Rule-based AI adapts difficulty, recommends activities, and adjusts
+            pacing to each child's unique learning rhythm.
+          </p>
+        </div>
+        <div class="feature-card">
+          <span class="icon">🎨</span>
+          <h3>Digital Art Studio</h3>
+          <p>
+            A calming canvas for finger painting, drawing, and emotional
+            expression — with large, accessible controls.
+          </p>
+        </div>
+        <div class="feature-card">
+          <span class="icon">📊</span>
+          <h3>Caregiver Dashboard</h3>
+          <p>
+            Parents and teachers see clear progress reports, activity insights,
+            and artwork — all in one simple view.
+          </p>
+        </div>
+        <div class="feature-card">
+          <span class="icon">📶</span>
+          <h3>Offline-First</h3>
+          <p>
+            Core learning experiences work without internet — essential for
+            intermittent connectivity across Africa.
+          </p>
+        </div>
+        <div class="feature-card">
+          <span class="icon">♿</span>
+          <h3>Accessibility First</h3>
+          <p>
+            Large touch targets, visual communication, audio reinforcement, and
+            minimal reading requirements throughout.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Values ─────────────────────────────────────── -->
+    <div class="values-strip">
+      <h2>Built on Ubuntu</h2>
+      <blockquote>"We are because of each other."</blockquote>
+      <ul class="values-list">
+        <li>Dignity</li>
+        <li>Inclusion</li>
+        <li>Confidence</li>
+        <li>Independence</li>
+        <li>Opportunity</li>
+      </ul>
+    </div>
+
+    <!-- ── Who It's For ───────────────────────────────── -->
+    <div class="section" id="who">
+      <p class="section-label">Who it's for</p>
+      <h2>Designed for children, supported by caregivers</h2>
+      <p>
+        JASIRI serves a community of children and the adults who support them
+        every day.
+      </p>
+
+      <div class="users-grid">
+        <div class="user-card">
+          <span class="avatar">🧒</span>
+          <h3>Children</h3>
+          <p>
+            Ages 4–18 with Down syndrome — the heart of everything we build.
+          </p>
+        </div>
+        <div class="user-card">
+          <span class="avatar">👩‍👦</span>
+          <h3>Parents &amp; Guardians</h3>
+          <p>
+            Monitor progress and celebrate milestones alongside their child.
+          </p>
+        </div>
+        <div class="user-card">
+          <span class="avatar">👩‍🏫</span>
+          <h3>Teachers</h3>
+          <p>Track learning outcomes and personalise classroom activities.</p>
+        </div>
+        <div class="user-card">
+          <span class="avatar">🩺</span>
+          <h3>Therapists</h3>
+          <p>Use engagement data to inform and support therapeutic goals.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CTA ───────────────────────────────────────── -->
+    <div class="cta-banner">
+      <h2>Every child deserves to learn their way.</h2>
+      <p>
+        JASIRI is free to download and designed to work on everyday Android and
+        iOS devices.
+      </p>
+      <a href="mailto:hello@jasiri.app" class="btn btn-dark">Get in Touch</a>
+    </div>
+
+    <!-- ── Footer ─────────────────────────────────────── -->
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-logo">JA<span>SIRI</span></div>
+        <ul class="footer-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#who">Who It's For</a></li>
+          <li><a href="privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="mailto:hello@jasiri.app">Contact</a></li>
+        </ul>
+        <p class="footer-copy">
+          &copy; 2026 JASIRI. Built with love for every child. &nbsp;·&nbsp;
+          Nairobi, Kenya
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
