@@ -43,8 +43,7 @@ const signRefreshToken = (payload) => {
 // ── OTP helpers ───────────────────────────────────────────────────────────────
 
 /** Generate a cryptographically random 6-digit numeric OTP. */
-const generateOtp = () =>
-  String(Math.floor(100000 + Math.random() * 900000));
+const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 
 /** OTP TTL: 15 minutes in milliseconds */
 const OTP_TTL_MS = 15 * 60 * 1000;
@@ -104,8 +103,10 @@ const register = async (req, res, next) => {
         {
           email,
           name,
-          role,          phoneNumber: phoneNumber || null,          isVerified: false,
-          preferences: JSON.stringify({ 
+          role,
+          phoneNumber: phoneNumber || null,
+          isVerified: false,
+          preferences: JSON.stringify({
             notifications: true,
             language: "en",
             timezone: "UTC",
@@ -477,7 +478,9 @@ const sendVerification = async (req, res, next) => {
     //     html: `<p>Your verification code is <strong>${otp}</strong>. It expires in 15 minutes.</p>`,
     //   });
     if (process.env.NODE_ENV !== "production") {
-      logger.info(`[DEV] Email verification OTP for ${appwriteUser.email}: ${otp}`);
+      logger.info(
+        `[DEV] Email verification OTP for ${appwriteUser.email}: ${otp}`,
+      );
     }
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -511,19 +514,27 @@ const verifyEmail = async (req, res, next) => {
     try {
       prefs = await users.getPrefs(userId);
     } catch (_err) {
-      throw new BadRequestError("Verification session not found. Please request a new code.");
+      throw new BadRequestError(
+        "Verification session not found. Please request a new code.",
+      );
     }
 
     const { otpHash, otpExpiresAt } = prefs;
 
     if (!otpHash || !otpExpiresAt) {
-      throw new BadRequestError("No verification code found. Please request a new code.");
+      throw new BadRequestError(
+        "No verification code found. Please request a new code.",
+      );
     }
 
     if (Date.now() > Number(otpExpiresAt)) {
       // Clear expired OTP
-      await users.updatePrefs(userId, { otpHash: null, otpExpiresAt: null }).catch(() => {});
-      throw new BadRequestError("Verification code has expired. Please request a new one.");
+      await users
+        .updatePrefs(userId, { otpHash: null, otpExpiresAt: null })
+        .catch(() => {});
+      throw new BadRequestError(
+        "Verification code has expired. Please request a new one.",
+      );
     }
 
     const isValid = await bcrypt.compare(String(otp), otpHash);
@@ -540,7 +551,9 @@ const verifyEmail = async (req, res, next) => {
     );
 
     // Clear the used OTP from prefs so it cannot be replayed
-    await users.updatePrefs(userId, { otpHash: null, otpExpiresAt: null }).catch(() => {});
+    await users
+      .updatePrefs(userId, { otpHash: null, otpExpiresAt: null })
+      .catch(() => {});
 
     logger.info("Guardian email verified", { userId });
     await auditLog({
@@ -557,4 +570,12 @@ const verifyEmail = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, refreshToken, logout, me, sendVerification, verifyEmail };
+module.exports = {
+  register,
+  login,
+  refreshToken,
+  logout,
+  me,
+  sendVerification,
+  verifyEmail,
+};

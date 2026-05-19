@@ -13,6 +13,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "sentry:release": "node scripts/sentry-release.js",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js --fix",
     "clean": "rm -rf node_modules coverage",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.6.0",
+    "@sentry/node": "^10.53.1",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "cors": "^2.8.5",

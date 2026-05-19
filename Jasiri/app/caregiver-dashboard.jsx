@@ -370,7 +370,10 @@ export default function CaregiverDashboardScreen() {
         </Animated.View>
 
         {/* ── Stats row ── */}
-        <View style={styles.statsRow} accessibilityLabel="Daily care statistics">
+        <View
+          style={styles.statsRow}
+          accessibilityLabel="Daily care statistics"
+        >
           <StatCard
             emoji="⏱️"
             label="Today"

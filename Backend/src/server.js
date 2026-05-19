@@ -1,3 +1,8 @@
+// @ts-nocheck
+// IMPORTANT: instrument.js must be the very first require so Sentry can
+// patch Node.js internals before any other module loads.
+require("./instrument");
+
 const { app } = require("./app");
 const { config } = require("./config");
 const { logger } = require("./utils/logger");

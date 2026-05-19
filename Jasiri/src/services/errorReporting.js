@@ -1,26 +1,21 @@
 /**
- * Error reporting service for JASIRI.
- *
- * This is a Sentry-ready stub. In the current form it:
- *  - Works in development (logs to console)
- *  - Works in production without Sentry (silent, no crashes)
- *  - Becomes fully active the moment @sentry/react-native is installed
- *    and EXPO_PUBLIC_SENTRY_DSN is set in .env
- *
- * To activate Sentry:
- *   1. npx expo install @sentry/react-native
- *   2. Add EXPO_PUBLIC_SENTRY_DSN=<your-dsn> to .env
- *   3. Uncomment the Sentry import blocks below
+ * Error reporting service for JASIRI — powered by Sentry.
  *
  * PRIVACY: We set minimal user context — only the child's anonymous profile ID
  * (not name, DOB, or any guardian PII). Complies with COPPA-friendly design.
+ *
+ * Requires EXPO_PUBLIC_SENTRY_DSN to be set in .env for events to be sent.
+ * Without DSN the service is silent and never crashes the app.
  */
 
-// ── Sentry import (uncomment after installing @sentry/react-native) ────────────
-// import * as Sentry from '@sentry/react-native';
+import * as Sentry from "@sentry/react-native";
+import Constants from "expo-constants";
 
 const DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
 const IS_DEV = __DEV__;
+// Release identifier — matches what the @sentry/react-native/expo plugin
+// sets automatically during EAS builds for consistency in dev sessions.
+const RELEASE = `jasiri@${Constants.expoConfig?.version ?? "1.0.0"}`;
 
 let initialized = false;
 
@@ -33,21 +28,26 @@ export function initErrorReporting() {
   if (!DSN || initialized) return;
 
   try {
-    // Sentry.init({
-    //   dsn: DSN,
-    //   environment: IS_DEV ? 'development' : 'production',
-    //   // Capture 20% of sessions for performance tracing — cheap on free tier
-    //   tracesSampleRate: IS_DEV ? 1.0 : 0.2,
-    //   // Disable in dev to avoid polluting Sentry with test errors
-    //   enabled: !IS_DEV,
-    //   // Strip PII from breadcrumbs
-    //   beforeSend(event) {
-    //     if (event.user) delete event.user.email;
-    //     return event;
-    //   },
-    // });
+    Sentry.init({
+      dsn: DSN,
+      release: RELEASE,
+      environment: IS_DEV ? "development" : "production",
+      // Capture 20% of sessions for performance tracing — cheap on free tier
+      tracesSampleRate: IS_DEV ? 1.0 : 0.2,
+      // Disable in dev to avoid polluting Sentry with test errors
+      enabled: !IS_DEV,
+      // Strip PII from events — COPPA compliance
+      beforeSend(event) {
+        if (event.user) {
+          // Keep only the anonymous ID; drop email, username, ip, etc.
+          const { id } = event.user;
+          event.user = id ? { id } : null;
+        }
+        return event;
+      },
+    });
     initialized = true;
-    if (IS_DEV) console.info("[errorReporting] initialized (stub mode)");
+    if (IS_DEV) console.info("[errorReporting] Sentry initialized");
   } catch (err) {
     // Reporting must never crash the app
     if (IS_DEV) console.warn("[errorReporting] init failed", err);
@@ -70,12 +70,12 @@ export function reportError(error, context = {}) {
   if (!initialized) return;
 
   try {
-    // Sentry.withScope((scope) => {
-    //   Object.entries(context).forEach(([key, value]) =>
-    //     scope.setExtra(key, value)
-    //   );
-    //   Sentry.captureException(error);
-    // });
+    Sentry.withScope((scope) => {
+      Object.entries(context).forEach(([key, value]) =>
+        scope.setExtra(key, value),
+      );
+      Sentry.captureException(error);
+    });
   } catch {
     // Swallow — reporting must never crash the app
   }
@@ -89,7 +89,7 @@ export function reportError(error, context = {}) {
  */
 export function setReportingUser({ profileId }) {
   if (!initialized || !profileId) return;
-  // Sentry.setUser({ id: profileId });
+  Sentry.setUser({ id: profileId });
 }
 
 /**
@@ -97,7 +97,7 @@ export function setReportingUser({ profileId }) {
  */
 export function clearReportingUser() {
   if (!initialized) return;
-  // Sentry.setUser(null);
+  Sentry.setUser(null);
 }
 
 /**
@@ -107,5 +107,5 @@ export function clearReportingUser() {
  */
 export function addBreadcrumb({ category, message, level = "info" }) {
   if (!initialized) return;
-  // Sentry.addBreadcrumb({ category, message, level });
+  Sentry.addBreadcrumb({ category, message, level });
 }

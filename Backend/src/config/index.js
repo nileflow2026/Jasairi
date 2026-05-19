@@ -44,9 +44,18 @@ const configSchema = z.object({
     maxRequests: z.coerce.number().default(100),
   }),
 
-  // CORS
+  // CORS — comma-separated list of allowed browser origins.
+  // React Native apps send no Origin header and are always allowed.
   cors: z.object({
-    origin: z.string().transform((str) => str.split(",")),
+    origin: z
+      .string()
+      .default("http://localhost:3000,http://localhost:8081")
+      .transform((str) =>
+        str
+          .split(",")
+          .map((o) => o.trim())
+          .filter(Boolean),
+      ),
   }),
 
   // Logging

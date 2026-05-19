@@ -554,7 +554,8 @@ export default function SelectProfileScreen() {
       language: "en",
       pitch: 1.1,
       rate: 0.8,
-      onError: (err) => console.warn("[TTS] offline learner speech error:", err),
+      onError: (err) =>
+        console.warn("[TTS] offline learner speech error:", err),
     });
     scheduleNav("/child-home");
     // eslint-disable-next-line react-hooks/exhaustive-deps

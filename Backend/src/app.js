@@ -1,4 +1,5 @@
 // @ts-nocheck
+const Sentry = require("@sentry/node");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -57,9 +58,19 @@ app.use(
 );
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
+// React Native apps do not send an Origin header (they are not browsers).
+// We pass those through unconditionally and only validate browser origins.
 app.use(
   cors({
-    origin: config.cors.origin,
+    origin: (origin, callback) => {
+      // No origin = React Native / server-to-server / curl → allow
+      if (!origin) return callback(null, true);
+      // Browser origin must be in the allow-list
+      if (config.cors.origin.includes(origin)) {
+        return callback(null, true);
+      }
+      callback(new Error(`CORS: origin '${origin}' is not allowed`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
@@ -100,6 +111,10 @@ app.use(`/api/${config.apiVersion}`, apiRouter);
 
 // 404 handler — must come after all valid routes
 app.use("*", notFoundHandler);
+
+// Sentry error handler — captures unhandled errors from routes.
+// Must be registered after all controllers and before any other error middleware.
+Sentry.setupExpressErrorHandler(app);
 
 // Global error handler — must be last
 app.use(errorHandler);

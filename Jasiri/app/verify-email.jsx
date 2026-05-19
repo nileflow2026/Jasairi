@@ -271,10 +271,7 @@ export default function VerifyEmailScreen() {
                 }
               >
                 {resending ? (
-                  <ActivityIndicator
-                    color={Colors.lavenderDark}
-                    size="small"
-                  />
+                  <ActivityIndicator color={Colors.lavenderDark} size="small" />
                 ) : (
                   <Text
                     style={[

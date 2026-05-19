@@ -4,6 +4,7 @@ import { View, ActivityIndicator } from "react-native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { setAudioModeAsync } from "expo-audio";
+import * as Sentry from "@sentry/react-native";
 import "../global.css";
 import useAuthStore from "../src/store/useAuthStore";
 import useChildStore from "../src/store/useChildStore";
@@ -26,7 +27,7 @@ initErrorReporting();
  *  4. Protects guarded routes behind auth
  *  5. Initializes audio system ONCE for the app lifetime
  */
-export default function RootLayout() {
+function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
 
@@ -120,3 +121,6 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+// Wrap with Sentry for automatic touch event tracking and tracing
+export default Sentry.wrap(RootLayout);

@@ -1,7 +1,8 @@
 {
   "cli": {
     "version": ">= 10.0.0",
-    "promptToConfigurePushNotifications": false
+    "promptToConfigurePushNotifications": false,
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -15,7 +16,6 @@
         "simulator": true
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://localhost:3000",
         "EXPO_PUBLIC_APPWRITE_ENDPOINT": "https://cloud.appwrite.io/v1"
       }
     },
@@ -28,7 +28,7 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://jasiri-backend-staging.up.railway.app",
+        "EXPO_PUBLIC_API_URL": "https://jasairi-backend.onrender.com",
         "EXPO_PUBLIC_APPWRITE_ENDPOINT": "https://cloud.appwrite.io/v1"
       }
     },
@@ -39,7 +39,7 @@
       },
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.jasiri.app",
+        "EXPO_PUBLIC_API_URL": "https://jasairi-backend.onrender.com",
         "EXPO_PUBLIC_APPWRITE_ENDPOINT": "https://cloud.appwrite.io/v1"
       }
     }
